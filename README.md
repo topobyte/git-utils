@@ -23,3 +23,9 @@ There are currently two tools:
 * `set-directory-modification-dates`
   sets the last-modification time of each directory to the commit time of the
   last commit that created or deleted a file in that directory.
+
+# Todo
+
+* Add `-verbose` switch so that the default output is not so verbose
+  but can be turned on request
+* Sort output by date or by canonical order of names
