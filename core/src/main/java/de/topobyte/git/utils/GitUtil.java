@@ -43,6 +43,38 @@ public class GitUtil
 		return files;
 	}
 
+	public static Set<Path> collectDirectories(Repository repository,
+			RevCommit commit) throws MissingObjectException,
+			IncorrectObjectTypeException, CorruptObjectException, IOException
+	{
+		Set<Path> directories = new HashSet<>();
+
+		RevTree tree = commit.getTree();
+		try (TreeWalk treeWalk = new TreeWalk(repository)) {
+			treeWalk.reset(tree);
+			treeWalk.setRecursive(true);
+			while (treeWalk.next()) {
+				String path = treeWalk.getPathString();
+				Path file = Paths.get(path);
+				Path parent = file.getParent();
+				if (parent != null) {
+					add(directories, parent);
+				}
+			}
+		}
+
+		return directories;
+	}
+
+	private static void add(Set<Path> directories, Path directory)
+	{
+		Path parent = directory.getParent();
+		while (parent != null) {
+			directories.add(parent);
+			parent = parent.getParent();
+		}
+	}
+
 	public static Set<Path> touched(Git git, RevCommit commit,
 			RevCommit previous)
 			throws IncorrectObjectTypeException, IOException, GitAPIException
