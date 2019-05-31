@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 
-import de.topobyte.git.utils.SetFileModificationDates;
+import de.topobyte.git.utils.SetDirectoryModificationDates;
 
 public class RunSetDirectoryModificationDates
 {
@@ -34,13 +34,14 @@ public class RunSetDirectoryModificationDates
 	{
 		if (args.length != 1) {
 			System.out.println(
-					"Usage: set-file-modification-dates <git directory>");
+					"Usage: set-directory-modification-dates <git directory>");
 			System.exit(1);
 		}
 
 		Path repoPath = Paths.get(args[0]);
 
-		SetFileModificationDates task = new SetFileModificationDates(repoPath);
+		SetDirectoryModificationDates task = new SetDirectoryModificationDates(
+				repoPath);
 		task.execute();
 	}
 
