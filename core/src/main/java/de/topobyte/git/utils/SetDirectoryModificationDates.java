@@ -75,6 +75,7 @@ public class SetDirectoryModificationDates
 		currentDirectories = GitUtil.collectDirectories(repository, last);
 
 		Date timeFirst = first.getCommitterIdent().getWhen();
+		dirToDate.put(null, timeFirst);
 		for (Path directory : initialDirectories) {
 			dirToDate.put(directory, timeFirst);
 		}
@@ -85,16 +86,30 @@ public class SetDirectoryModificationDates
 
 			Set<Path> touched = GitUtil.touchedDirectories(git, commit,
 					previous);
-			for (Path path : touched) {
+			List<Path> sorted = new ArrayList<>(touched);
+			Collections.sort(sorted, new PathComparatorByLength());
+			for (Path path : sorted) {
 				Date date = commit.getCommitterIdent().getWhen();
+				boolean isNew = !dirToDate.containsKey(path);
 				dirToDate.put(path, date);
 				if (path != null) {
+					// touch non-existing parent directories
 					touchParents(path, date);
+					if (isNew) {
+						// if this is a new directory, update the direct parent
+						touchParent(path, date);
+					}
 				}
 			}
 		}
 
 		git.close();
+	}
+
+	private void touchParent(Path directory, Date date)
+	{
+		Path parent = directory.getParent();
+		dirToDate.put(parent, date);
 	}
 
 	private void touchParents(Path directory, Date date)
