@@ -72,7 +72,7 @@ public class SetFileModificationDates
 			}
 
 			Set<Path> touched = GitUtil.touchedFiles(git, last, commit);
-			update(commit, touched);
+			update(last, touched);
 
 			if (todo.isEmpty()) {
 				return;
