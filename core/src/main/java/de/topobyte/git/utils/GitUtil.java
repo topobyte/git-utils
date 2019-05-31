@@ -75,7 +75,7 @@ public class GitUtil
 		}
 	}
 
-	public static Set<Path> touched(Git git, RevCommit commit,
+	public static Set<Path> touchedFiles(Git git, RevCommit commit,
 			RevCommit previous)
 			throws IncorrectObjectTypeException, IOException, GitAPIException
 	{
