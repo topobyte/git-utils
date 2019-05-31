@@ -7,9 +7,11 @@ public class PathComparatorByLength implements Comparator<Path>
 {
 
 	@Override
-	public int compare(Path o1, Path o2)
+	public int compare(Path p1, Path p2)
 	{
-		return Integer.compare(o1.getNameCount(), o2.getNameCount());
+		int nc1 = p1 == null ? 0 : p1.getNameCount();
+		int nc2 = p2 == null ? 0 : p2.getNameCount();
+		return Integer.compare(nc1, nc2);
 	}
 
 }
