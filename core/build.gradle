@@ -4,6 +4,7 @@ if (project.hasProperty("topobyte")) {
 }
 
 dependencies {
+    compile 'de.topobyte:collections-utils:0.0.5'
     compile 'org.eclipse.jgit:org.eclipse.jgit:5.2.1.201812262042-r'
     compile 'org.slf4j:slf4j-api:1.6.1'
 

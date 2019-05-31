@@ -58,7 +58,8 @@ public class GitUtil
 				Path file = Paths.get(path);
 				Path parent = file.getParent();
 				if (parent != null) {
-					add(directories, parent);
+					directories.add(parent);
+					addParents(directories, parent);
 				}
 			}
 		}
@@ -66,7 +67,7 @@ public class GitUtil
 		return directories;
 	}
 
-	private static void add(Set<Path> directories, Path directory)
+	private static void addParents(Set<Path> directories, Path directory)
 	{
 		Path parent = directory.getParent();
 		while (parent != null) {
@@ -98,6 +99,51 @@ public class GitUtil
 		}
 
 		return files;
+	}
+
+	public static Set<Path> touchedDirectories(Git git, RevCommit commit,
+			RevCommit previous)
+			throws IncorrectObjectTypeException, IOException, GitAPIException
+	{
+		Set<Path> directories = new HashSet<>();
+
+		Repository repository = git.getRepository();
+
+		DiffCommand diff = git.diff();
+		diff.setOldTree(new CanonicalTreeParser(null,
+				repository.newObjectReader(), previous.getTree()));
+		diff.setNewTree(new CanonicalTreeParser(null,
+				repository.newObjectReader(), commit.getTree()));
+		List<DiffEntry> changes = diff.call();
+		for (DiffEntry change : changes) {
+			ChangeType type = change.getChangeType();
+			switch (type) {
+			case COPY:
+			case ADD: {
+				Path path = Paths.get(change.getNewPath());
+				directories.add(path.getParent());
+				break;
+			}
+			case DELETE: {
+				Path path = Paths.get(change.getOldPath());
+				directories.add(path.getParent());
+				break;
+			}
+			case RENAME: {
+				Path path1 = Paths.get(change.getOldPath());
+				Path path2 = Paths.get(change.getNewPath());
+				directories.add(path1.getParent());
+				directories.add(path2.getParent());
+				break;
+			}
+			case MODIFY: {
+				// nothing to do here
+				break;
+			}
+			}
+		}
+
+		return directories;
 	}
 
 }

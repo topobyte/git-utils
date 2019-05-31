@@ -1,0 +1,7 @@
+#!/bin/bash
+
+DIR=$(dirname $0)
+CMD="$DIR/git-utils.sh"
+CLASS="de.topobyte.git.utils.cli.RunSetDirectoryModificationDates"
+
+exec "$CMD" "$CLASS" "$@"
