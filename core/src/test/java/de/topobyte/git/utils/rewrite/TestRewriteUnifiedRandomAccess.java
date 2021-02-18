@@ -37,7 +37,10 @@ public class TestRewriteUnifiedRandomAccess
 
 		Git git = Git.open(dir.toFile());
 
+		String command = "project-tools source add-headers --year 2015 unified-random-access";
+
 		RewriteHistory rewrite = new RewriteHistory(git, "master", "rewrite");
+		rewrite.setCommand(command);
 		rewrite.run();
 	}
 

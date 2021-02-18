@@ -27,6 +27,7 @@ import org.eclipse.jgit.api.CherryPickResult;
 import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -39,6 +40,7 @@ public class RewriteHistory
 	private Git git;
 	private String sourceBranchName;
 	private String targetBranchName;
+	private String command = null;
 
 	public RewriteHistory(Git git, String sourceBranchName,
 			String targetBranchName)
@@ -46,6 +48,11 @@ public class RewriteHistory
 		this.git = git;
 		this.sourceBranchName = sourceBranchName;
 		this.targetBranchName = targetBranchName;
+	}
+
+	public void setCommand(String command)
+	{
+		this.command = command;
 	}
 
 	public void run() throws IOException, GitAPIException
@@ -87,6 +94,21 @@ public class RewriteHistory
 		print(first);
 		git.reset().setMode(ResetType.HARD).setRef(first.name()).call();
 
+		if (command != null) {
+			boolean successful = executeCommand();
+			if (!successful) {
+				System.out.println("Command failed");
+				return;
+			}
+			git.add().addFilepattern(".").call();
+			Status status = git.status().call();
+			// We can only amend if something changed due to the command
+			// execution
+			if (!status.isClean()) {
+				amend(first);
+			}
+		}
+
 		System.out.println("Applying other commits");
 		for (int i = 0; i < list.size(); i++) {
 			RevCommit commit = list.get(i);
@@ -99,7 +121,26 @@ public class RewriteHistory
 				break;
 			}
 
+			boolean successful = executeCommand();
+			if (!successful) {
+				System.out.println("Command failed");
+				return;
+			}
+			git.add().addFilepattern(".").call();
+
 			amend(commit);
+		}
+	}
+
+	private boolean executeCommand()
+	{
+		try {
+			Process p = Runtime.getRuntime().exec(command);
+			int exitValue = p.waitFor();
+			return exitValue == 0;
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 
