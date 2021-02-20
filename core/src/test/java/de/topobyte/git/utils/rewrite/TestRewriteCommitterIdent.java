@@ -22,26 +22,34 @@ import java.nio.file.Path;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 
 import de.topobyte.git.utils.RewriteHistory;
 import de.topobyte.system.utils.SystemPaths;
 
-public class TestRewriteUnifiedRandomAccess
+public class TestRewriteCommitterIdent
 {
 
 	public static void main(String[] args) throws IOException, GitAPIException
 	{
 		System.out.println("Rewriting History");
-		Path dir = SystemPaths.HOME
-				.resolve("github/topobyte/unified-random-access");
+		Path dir = SystemPaths.HOME.resolve("git/some-repo");
 
 		Git git = Git.open(dir.toFile());
 
-		String command = "project-tools source add-headers --year 2015 unified-random-access";
-
 		RewriteHistory rewrite = new RewriteHistory(git, "master", "rewrite",
-				false);
-		rewrite.setCommand(command);
+				true) {
+
+			@Override
+			public void amend(RevCommit commit)
+					throws IOException, GitAPIException
+			{
+				git.commit().setAmend(true).setAuthor(commit.getAuthorIdent())
+						.setCommitter(commit.getAuthorIdent())
+						.setMessage(commit.getFullMessage()).call();
+			}
+
+		};
 		rewrite.run();
 	}
 
