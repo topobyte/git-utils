@@ -41,6 +41,7 @@ public class TestRewriteGeneralMapUtils
 
 		RewriteHistory rewrite = new RewriteHistory(git, "master", "rewrite",
 				false);
+		rewrite.setUseNative(true);
 		rewrite.setCommand(command);
 		rewrite.run();
 	}

@@ -19,6 +19,7 @@ package de.topobyte.git.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -42,6 +43,7 @@ public class RewriteHistory
 	private String targetBranchName;
 	private String command = null;
 	private boolean forceAmendFirst = false;
+	private boolean useNative = false;
 
 	public RewriteHistory(Git git, String sourceBranchName,
 			String targetBranchName, boolean forceAmendFirst)
@@ -55,6 +57,11 @@ public class RewriteHistory
 	public void setCommand(String command)
 	{
 		this.command = command;
+	}
+
+	public void setUseNative(boolean useNative)
+	{
+		this.useNative = useNative;
 	}
 
 	public void run() throws IOException, GitAPIException
@@ -119,11 +126,20 @@ public class RewriteHistory
 			RevCommit commit = list.get(i);
 			System.out.println(String.format("PICKING %s", commit.getName()));
 			print(commit);
-			CherryPickResult result = git.cherryPick().include(commit).call();
-			CherryPickStatus status = result.getStatus();
-			if (status != CherryPickStatus.OK) {
-				System.out.println(status);
-				break;
+			if (useNative) {
+				boolean success = nativeCherryPick(commit.getName());
+				if (!success) {
+					System.out.println("cherry pick failed");
+					break;
+				}
+			} else {
+				CherryPickResult result = git.cherryPick().include(commit)
+						.call();
+				CherryPickStatus status = result.getStatus();
+				if (status != CherryPickStatus.OK) {
+					System.out.println(status);
+					break;
+				}
 			}
 
 			if (command != null) {
@@ -143,6 +159,21 @@ public class RewriteHistory
 	{
 		try {
 			Process p = Runtime.getRuntime().exec(command);
+			int exitValue = p.waitFor();
+			return exitValue == 0;
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private boolean nativeCherryPick(String name)
+	{
+		List<String> command = Arrays.asList("git", "cherry-pick", name);
+		try {
+			ProcessBuilder pb = new ProcessBuilder().command(command)
+					.directory(git.getRepository().getWorkTree());
+			Process p = pb.start();
 			int exitValue = p.waitFor();
 			return exitValue == 0;
 		} catch (IOException | InterruptedException e) {
