@@ -19,11 +19,14 @@ package de.topobyte.git.utils.rewrite;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import de.topobyte.git.utils.RewriteHistory;
+import de.topobyte.git.utils.commands.SimpleCommandFactory;
 import de.topobyte.system.utils.SystemPaths;
 
 public class TestRewriteUnifiedRandomAccess
@@ -37,11 +40,13 @@ public class TestRewriteUnifiedRandomAccess
 
 		Git git = Git.open(dir.toFile());
 
-		String command = "project-tools source add-headers --year 2015 unified-random-access";
+		List<String> command = Arrays.asList("project-tools",
+				"source add-headers", "--year", "2015",
+				"unified-random-access");
 
 		RewriteHistory rewrite = new RewriteHistory(git, "master", "rewrite",
 				false);
-		rewrite.setCommand(command);
+		rewrite.setCommand(new SimpleCommandFactory(command));
 		rewrite.run();
 	}
 

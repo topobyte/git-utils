@@ -36,13 +36,15 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import de.topobyte.git.utils.commands.CommandFactory;
+
 public class RewriteHistory
 {
 
 	private Git git;
 	private String sourceBranchName;
 	private String targetBranchName;
-	private String command = null;
+	private CommandFactory commandFactory = null;
 	private boolean forceAmendFirst = false;
 	private boolean useNative = false;
 	private Function<String, String> commitMessageChanger = null;
@@ -56,9 +58,9 @@ public class RewriteHistory
 		this.forceAmendFirst = forceAmendFirst;
 	}
 
-	public void setCommand(String command)
+	public void setCommand(CommandFactory commandFactory)
 	{
-		this.command = command;
+		this.commandFactory = commandFactory;
 	}
 
 	public void setUseNative(boolean useNative)
@@ -112,8 +114,8 @@ public class RewriteHistory
 		git.reset().setMode(ResetType.HARD).setRef(first.name()).call();
 
 		boolean amendFirst = false;
-		if (command != null) {
-			boolean successful = executeCommand();
+		if (commandFactory != null) {
+			boolean successful = executeCommand(first);
 			if (!successful) {
 				System.out.println("Command failed");
 				return;
@@ -150,8 +152,8 @@ public class RewriteHistory
 				}
 			}
 
-			if (command != null) {
-				boolean successful = executeCommand();
+			if (commandFactory != null) {
+				boolean successful = executeCommand(commit);
 				if (!successful) {
 					System.out.println("Command failed");
 					return;
@@ -163,10 +165,13 @@ public class RewriteHistory
 		}
 	}
 
-	private boolean executeCommand()
+	private boolean executeCommand(RevCommit commit)
 	{
+		List<String> command = commandFactory.getCommand(commit);
 		try {
-			Process p = Runtime.getRuntime().exec(command);
+			ProcessBuilder pb = new ProcessBuilder().command(command)
+					.directory(git.getRepository().getWorkTree());
+			Process p = pb.start();
 			int exitValue = p.waitFor();
 			return exitValue == 0;
 		} catch (IOException | InterruptedException e) {
