@@ -43,6 +43,13 @@ public class TestRewriteGeneralMapUtils
 				false);
 		rewrite.setUseNative(true);
 		rewrite.setCommand(command);
+		rewrite.setCommitMessageChanger(m -> {
+			if (m.equals("moved some stuff here\n")) {
+				return "Initial version\n";
+			}
+			return m;
+		});
+
 		rewrite.run();
 	}
 

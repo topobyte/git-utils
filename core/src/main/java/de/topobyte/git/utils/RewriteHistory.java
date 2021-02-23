@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 import org.eclipse.jgit.api.CherryPickResult;
 import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
@@ -44,6 +45,7 @@ public class RewriteHistory
 	private String command = null;
 	private boolean forceAmendFirst = false;
 	private boolean useNative = false;
+	private Function<String, String> commitMessageChanger = null;
 
 	public RewriteHistory(Git git, String sourceBranchName,
 			String targetBranchName, boolean forceAmendFirst)
@@ -62,6 +64,12 @@ public class RewriteHistory
 	public void setUseNative(boolean useNative)
 	{
 		this.useNative = useNative;
+	}
+
+	public void setCommitMessageChanger(
+			Function<String, String> commitMessageChanger)
+	{
+		this.commitMessageChanger = commitMessageChanger;
 	}
 
 	public void run() throws IOException, GitAPIException
@@ -184,9 +192,13 @@ public class RewriteHistory
 
 	public void amend(RevCommit commit) throws IOException, GitAPIException
 	{
+		String message = commit.getFullMessage();
+		if (commitMessageChanger != null) {
+			message = commitMessageChanger.apply(message);
+		}
 		git.commit().setAmend(true).setAuthor(commit.getAuthorIdent())
-				.setCommitter(commit.getCommitterIdent())
-				.setMessage(commit.getFullMessage()).call();
+				.setCommitter(commit.getCommitterIdent()).setMessage(message)
+				.call();
 	}
 
 	private static void print(RevCommit commit)
