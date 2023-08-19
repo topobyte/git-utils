@@ -3,6 +3,8 @@ if (project.hasProperty("topobyte")) {
         + '/.gradle/topobyte.gradle'
 }
 
+eclipse.project.name = 'git-utils'
+
 dependencies {
     api 'de.topobyte:collections-utils:0.0.5'
     api 'org.eclipse.jgit:org.eclipse.jgit:5.2.1.201812262042-r'
